@@ -17,6 +17,7 @@ let fieldNames = [
 	'peerID',
 	'seedID',
 	'peerPort',
+	'newCreateValidator',
 	'seedPort',
 	'installBin',
 	'stateSync',
@@ -32,7 +33,8 @@ let fieldNames = [
 	'evmRPC',
 	'explorer',
 	'name',
-	'link'
+	'link',
+	'node'
 ]
 
 for (let i = 1; i <= 10; i++) {

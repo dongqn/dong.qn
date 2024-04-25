@@ -1,15 +1,15 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import styles from '@styles/Services.module.scss'
 import { Input, Space } from 'antd'
 import Head from 'next/head'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 
-import projects from 'data/projects'
 import { Context } from '@context/context'
-import { fetchSnap, fetchStatus } from '@utils/fetchProject.js'
-import CodeSnippet from './UI/CodeSnippet'
-import AnimatedSection from './AnimatedSection'
-import useNetInfo from 'hooks/useNetInfo'
 import useFetchSnapInfo from '@hooks/useFetchSnapInfo'
+import { fetchStatus } from '@utils/fetchProject.js'
+import projects from 'data/projects'
+import useNetInfo from 'hooks/useNetInfo'
+import AnimatedSection from './AnimatedSection'
+import CodeSnippet from './UI/CodeSnippet'
 
 const Installation = props => {
 	const name = props.name
@@ -28,6 +28,7 @@ const Installation = props => {
 		peerPort,
 		updHeight,
 		newInstallBin,
+		newCreateValidator,
 		variable,
 		denom,
 		goVersion,
@@ -35,6 +36,7 @@ const Installation = props => {
 		unsafeReset,
 		minGasPrice,
 		newExecStart,
+		node,
 		newInit
 	} = project
 
@@ -52,13 +54,18 @@ const Installation = props => {
 	const [commissionRate, setCommissionRate] = useState(0.1)
 	const [commissionMaxRate, setCommissionMaxRate] = useState(0.2)
 	const [commissionMaxChange, setCommissionMaxChange] = useState(0.01)
+	const [website, setWebsite] = useState('')
 
 	const execStart = newExecStart == undefined ? `$(which ${bin}) start --home $HOME/${path}` : newExecStart
 	let init = ''
 
-	if (newInit !== 'false') {
-		init = newInit == undefined ? `${bin} init "${moniker}" --chain-id ${chainID}` : newInit
-	}
+	init =
+		newInit && newInit !== 'false'
+			? newInit
+			: `${bin} config node tcp://localhost:\${${variable}_PORT}657
+${bin} config keyring-backend os
+${bin} config chain-id ${chainID}
+${bin} init "${moniker}" --chain-id ${chainID}`
 
 	let PEERS = '""',
 		SEEDS = '""'
@@ -193,9 +200,6 @@ source $HOME/.bash_profile
 ${installBin}
 
 # config and init app
-${bin} config node tcp://localhost:\${${variable}_PORT}657
-${bin} config keyring-backend os
-${bin} config chain-id ${chainID}
 ${init}
 
 # download genesis and addrbook
@@ -290,10 +294,10 @@ echo "export VALOPER_ADDRESS="$VALOPER_ADDRESS >> $HOME/.bash_profile
 source $HOME/.bash_profile
 
 # check sync status, once your node is fully synced, the output from above will print "false"
-${bin} status 2>&1 | jq .SyncInfo
+${bin} status ${node ? node + ' ' : ''}2>&1 | jq 
 
 # before creating a validator, you need to fund your wallet and check balance
-${bin} query bank balances $WALLET_ADDRESS
+${bin} query bank balances $WALLET_ADDRESS ${node ? node : ''}
 `}
 				/>
 				<h2 id='create-validator'>Create validator</h2>
@@ -355,12 +359,21 @@ ${bin} query bank balances $WALLET_ADDRESS
 								onChange={e => setCommissionMaxChange(e.target.value)}
 							/>
 						</Space>
+						<Space direction='vertical'>
+							<span>Website</span>
+							<Input
+								style={{ minWidth: '40px' }}
+								defaultValue={''}
+								onChange={e => setWebsite(e.target.value)}
+							/>
+						</Space>
 					</Space>
 				</Space>
 				<div className='flex flex-col gap-y-2'>
-					<CodeSnippet
-						theme={theme}
-						code={`${bin} tx staking create-validator \\
+					{newCreateValidator?.toUpperCase() !== 'JSON' ? (
+						<CodeSnippet
+							theme={theme}
+							code={`${bin} tx staking create-validator \\
 --amount ${amountCreate}${denom} \\
 --from $WALLET \\
 --commission-rate ${commissionRate} \\
@@ -370,11 +383,37 @@ ${bin} query bank balances $WALLET_ADDRESS
 --pubkey $(${bin} tendermint show-validator) \\
 --moniker "${moniker}" \\
 --identity "${identity}" \\
+--website "${website}" \\
 --details "${details}" \\
 --chain-id ${chainID} \\
 ${gas} \\
 -y`}
-					/>
+						/>
+					) : (
+						<CodeSnippet
+							theme={theme}
+							code={`cd $HOME
+# Create validator.json file
+echo "{\\"pubkey\\":{\\"@type\\":\\"/cosmos.crypto.ed25519.PubKey\\",\\"key\\":\\"$(${bin} comet show-validator | grep -Po '\\"key\\":\\s*\\"\\K[^"]*')\\"},
+    \\"amount\\": \\"${amountCreate}${denom}\\",
+    \\"moniker\\": \\"${moniker}\\",
+    \\"identity\\": \\"${identity}\\",
+    \\"website\\": \\"${website}\\",
+    \\"security\\": \\"\\",
+    \\"details\\": \\"${details}\\",
+    \\"commission-rate\\": \\"${commissionRate}\\",
+    \\"commission-max-rate\\": \\"${commissionMaxRate}\\",
+    \\"commission-max-change-rate\\": \\"${commissionMaxChange}\\",
+    \\"min-self-delegation\\": \\"1\\"
+}" > validator.json
+# Create a validator using the JSON configuration
+${bin} tx staking create-validator validator.json \\
+    --from \$WALLET \\
+    --chain-id ${chainID} \\
+	${gas} \\
+	${node ? node : ''}`}
+						/>
+					)}
 				</div>
 				<h2 id='monitoring'>Monitoring</h2>
 				<p>
@@ -424,6 +463,6 @@ sed -i "/${variable}_/d" $HOME/.bash_profile`}
 			</div>
 		</AnimatedSection>
 	)
-}
+} //
 
 export default Installation
