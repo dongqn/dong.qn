@@ -25,7 +25,7 @@ const CosmosAPI = ({ name, type }) => {
 	const PEERS = peerID ? `${peerID}@${name}-${type}-peer.itrocket.net:${peerPort}${livePeers}` : ''
 	const LIVE_PEERS = peerID ? `"${PEERS}"` : `"${livePeers.slice(1)}"`
 	const SEEDS = seedID ? `${seedID}@${name}-${type}-seed.itrocket.net:${seedPort}` : ''
-	const gRPC = `${name}-${type}-grpc.itrocket.net:${peerPort ? peerPort.slice(0, 2) : ''}090`
+	const gRPC = `${name}-${type}-grpc.itrocket.net:443`
 
 	const { snapHeight, snapSize, snapTime, pruning, indexer, wasmPath } = useFetchSnapInfo(name, type)
 
