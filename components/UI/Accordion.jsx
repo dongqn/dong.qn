@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
+import { useEffect, useRef, useState } from 'react'
 
 import styles from '@styles/Accordion.module.scss'
+import Image from 'next/image'
 
 const AccordionItem = ({ title, content }) => {
 	const [isActive, setIsActive] = useState(false)
@@ -53,17 +54,13 @@ const Accordion = () => {
 		{
 			title: 'About us',
 			content: (
-				<span>
+				<div>
 					ITRocket is a team of DevOps engineers and Software Developers from Armenia{' '}
-					<span
-						className='inline-block h-5 w-5 align-top mx-1 lg:mt-[2px]'
-						aria-hidden='true'
-						style={{ background: "center / contain url('/icons/flag_am.svg')  no-repeat" }}
-					></span>{' '}
+					<Image className='mb-1 inline' src='/icons/emoji/am.svg' alt='telegram' width={18} height={18} />{' '}
 					<br />
 					We are crypto enthusiasts and node operators in various crypto ecosystems. Our main goal is to help
 					millions of people effectively manage their crypto assets!
-				</span>
+				</div>
 			)
 		},
 		{

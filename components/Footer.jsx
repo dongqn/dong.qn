@@ -40,15 +40,17 @@ const Footer = props => {
 				</div>
 
 				<div className={styles.copyright}>
-					<span>
+					<div>
 						Developed with{' '}
-						<span
-							className='inline-block h-5 w-5 bg-red-400 align-top '
-							aria-hidden='true'
-							style={{ WebkitMask: "url('/icons/heart.svg') 50% 50% no-repeat" }}
-						/>{' '}
+						<Image
+							className='mr-1 inline'
+							src='/icons/emoji/red-heart.svg'
+							alt='telegram'
+							width={18}
+							height={18}
+						/>
 						for the Web3 community.
-					</span>
+					</div>
 					<span className='text-slate-600'>© ITRocket Team. All rights reserved</span>
 				</div>
 

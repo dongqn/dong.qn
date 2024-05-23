@@ -1,5 +1,6 @@
 import { getLayout } from '@layouts/dashboard'
 import { authPocketbase, pb } from '@utils/pocketbase/pb'
+import { Alert } from 'antd'
 import dynamic from 'next/dynamic'
 
 const LeafletNoSSR = dynamic(() => import('@components/Map'), {
@@ -9,6 +10,12 @@ const LeafletNoSSR = dynamic(() => import('@components/Map'), {
 const DecentralizationPage = ({ data }) => {
 	return (
 		<div>
+			<Alert
+				className='!w-fit mb-2'
+				message='The data and analysis displayed on this page may not be 100% accurate. Please treat it only as approximate'
+				type='info'
+				showIcon
+			/>
 			<LeafletNoSSR data={data} />
 		</div>
 	)
